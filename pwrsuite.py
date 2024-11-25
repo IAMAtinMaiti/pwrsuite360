@@ -142,7 +142,7 @@ def fetch_timesheets():
 # Streamlit App
 st.set_page_config(
     page_title="Employee & Project Management System",
-    initial_sidebar_state="expanded"  # Sidebar options: "expanded", "collapsed"
+    initial_sidebar_state="collapsed"  # Sidebar options: "expanded", "collapsed"
 )
 
 # Main Dashboard
@@ -245,7 +245,7 @@ def main_dashboard():
         if report_menu == "Employee Overview":
             st.dataframe(fetch_employees())
         elif report_menu == "Project Overview":
-            st.dataframe(fetch_projects())
+            st.dataframe(fetch_projects(), height=600)
 
 
 # Main App Logic
