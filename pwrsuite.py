@@ -162,6 +162,7 @@ def main_dashboard():
     # Home Tab
     with tabs[0]:
         st.header("Welcome to the Employee Management System")
+        st.image("background.jpg", use_container_width=True)
 
     # Other tabs depending on role
     if st.session_state["role"] == "admin":
