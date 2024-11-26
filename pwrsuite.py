@@ -13,7 +13,8 @@ c.execute('''CREATE TABLE IF NOT EXISTS employees (
                 employee_name TEXT, 
                 employee_type TEXT, 
                 rate int,
-                FOREIGN KEY (employee_id) REFERENCES projects (project_id)
+                project_id INTEGER,
+                FOREIGN KEY (project_id) REFERENCES projects (project_id)
                 )''')
 
 c.execute('''CREATE TABLE IF NOT EXISTS projects (
@@ -120,10 +121,9 @@ def fetch_project_employees(project_id):
     return pd.read_sql_query(f"SELECT * FROM employees WHERE project_id = {project_id}", conn)
 
 
-def fetch_projects_ids(c):
+def fetch_projects_ids():
     """
 
-    :param c:
     :return:
     """
     try:
@@ -132,34 +132,36 @@ def fetch_projects_ids(c):
         query = f"SELECT project_id FROM projects"
 
         # Execute the query
-        c.execute(query)
-        result = c.fetchone()
+        df = pd.read_sql_query(query, conn)
+        result = set(df['project_id'])
 
         # Return the result as a set
         if result:
-            return set(result)
+            return result
         else:
             return set()  # Return an empty set if no result is found
     except sqlite3.Error as e:
         print(f"Database error: {e}")
         return set()
 
+
 def fetch_projects():
     return pd.read_sql_query("SELECT * FROM projects", conn)
+
 
 def add_timesheet(employee_id, project_id, date, present_flag, overtime_hours, comments):
     c.execute('''
         INSERT INTO timesheets (employee_id, project_id, date, present_flag, overtime_hours, comments)
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?)
     ''', (employee_id, project_id, date, present_flag, overtime_hours, comments))
     conn.commit()
 
 def fetch_timesheets():
     return pd.read_sql_query('''
-        SELECT t.id, e.employee_name AS employee, p.project_name AS project, t.date, t.hours_worked, t.description
+        SELECT t.id, e.employee_name AS employee, p.project_name AS project, t.date, t.present_flag, t.overtime_hours, t.comments
         FROM timesheets t
-        JOIN employees e ON t.employee_id = e.id
-        JOIN projects p ON t.project_id = p.id
+        JOIN employees e ON t.employee_id = e.employee_id
+        JOIN projects p ON t.project_id = p.project_id
     ''', conn)
 
 
@@ -203,7 +205,7 @@ def main_dashboard():
                 rate = st.number_input("Hourly Rate", min_value=0.0, step=0.5)
                 project_id = st.selectbox(
                     "Project Id",
-                    fetch_projects_ids(c)
+                    fetch_projects_ids()
                 )
                 submitted = st.form_submit_button("Add Employee")
                 if submitted:
@@ -227,6 +229,7 @@ def main_dashboard():
                 st.success("Employee deleted successfully!")
         elif emp_menu == "View All":
             st.dataframe(fetch_employees())
+
     with tabs[2]:
         st.header("Manage Projects")
         proj_menu = st.selectbox("Action", ["Add", "View All"])
@@ -234,15 +237,16 @@ def main_dashboard():
         if proj_menu == "Add":
             with st.form("add_project_form"):
                 project_name = st.text_input("Project Name")
-                employees = fetch_employees()
-                assigned_to = st.selectbox("Assign To", employees["employee_id"])
-                deadline = st.date_input("Deadline")
+                project_location = st.text_input("Project Location")
+                start_date = st.date_input("Start Date")
+                end_date = st.date_input("End Date")
                 submitted = st.form_submit_button("Add Project")
                 if submitted:
-                    add_project(project_name, assigned_to, deadline)
+                    add_project(project_name, project_location, start_date, end_date)
                     st.success("Project added successfully!")
         elif proj_menu == "View All":
             st.dataframe(fetch_projects())
+
     with tabs[3]:
         st.header("Timesheet Entry")
 
