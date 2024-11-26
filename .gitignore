@@ -1,2 +1,3 @@
 .venv
+.idea
 employee_management.db
