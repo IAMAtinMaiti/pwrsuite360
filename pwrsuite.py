@@ -260,16 +260,18 @@ def main_dashboard():
                                       format_func=lambda x:
                                       projects.loc[projects["project_id"] == x, "project_name"].values[0])
             date = st.date_input("Date")
-            hours_worked = st.number_input("Hours Worked", min_value=0.0, step=0.5)
-            description = st.text_area("Description")
+            present_flag = st.checkbox("Present")
+            overtime_hours = st.number_input("Over Time", min_value=0.0, step=0.5)
+            comments = st.text_area("comments")
             submitted = st.form_submit_button("Submit Timesheet")
 
             if submitted:
-                add_timesheet(employee_id, project_id, date, hours_worked, description)
+                add_timesheet(employee_id, project_id, date, present_flag, overtime_hours, comments)
                 st.success("Timesheet entry added successfully!")
 
         st.subheader("Timesheet Records")
         st.dataframe(fetch_timesheets())
+
     with tabs[4]:
         st.header("Generate Reports")
         report_menu = st.selectbox("Report Type", ["Employee Overview", "Project Overview"])
