@@ -250,15 +250,17 @@ def main_dashboard():
     with tabs[3]:
         st.header("Timesheet Entry")
 
-        employees = fetch_employees()
+
         projects = fetch_projects()
 
         with st.form("timesheet_entry_form"):
-            employee_id = st.selectbox("Employee", employees["employee_id"],
-                                       format_func=lambda x: employees.loc[employees["employee_id"] == x, "employee_name"].values[0])
             project_id = st.selectbox("Project", projects["project_id"],
                                       format_func=lambda x:
                                       projects.loc[projects["project_id"] == x, "project_name"].values[0])
+
+            employee_id = st.selectbox("Employee", fetch_project_employees(project_id)["employee_id"],
+                                       format_func=lambda x:
+                                       fetch_project_employees(project_id).loc[fetch_project_employees(project_id)["employee_id"] == x, "employee_name"].values[0])
             date = st.date_input("Date")
             present_flag = st.checkbox("Present")
             overtime_hours = st.number_input("Over Time", min_value=0.0, step=0.5)
